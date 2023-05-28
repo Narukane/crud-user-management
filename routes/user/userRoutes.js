@@ -5,9 +5,9 @@ const router = express.Router();
 const User = require('../../models/User');
 const authenticateUser = require('../../middleware/authenticateUser');
 
-// Get all users (only accessible by admin)
+// Get all users (only accessible by admin and user)
 router.get('/', authenticateUser, async (req, res) => {
-  if (req.user.role !== 'admin') {
+  if (req.user.role !== 'admin' && req.user.role !== 'user') {
     return res.status(403).json({ error: 'Access denied' });
   }
 
@@ -30,12 +30,13 @@ router.get('/:id', authenticateUser, async (req, res) => {
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
-
-    if (req.user.role === 'user' && req.user.userId !== user._id.toString()) {
+    
+    if (req.user.role === "admin" || req.user.role === "user") {
+      return res.status(200).json(user);
+    } else {
       return res.status(403).json({ error: 'Access denied' });
     }
 
-    return res.status(200).json(user);
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Internal server error' });
